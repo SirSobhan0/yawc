@@ -2,6 +2,8 @@
 
 Pronunciation: /jˈɔːk/ (yawk)
 
+![preview photo](assets/preview.png)
+
 yawc is a stylish, lightweight wallpaper selector interface for Wayland built with Quickshell and QML. It presents your wallpaper collection in an animated, slanted horizontal carousel for quick previewing and selection.
 
 ⚡ Note: This project was vibe coded.
@@ -51,4 +53,4 @@ There will likely be no further development or active maintenance on this projec
 
 ## License
 
-This project is licensed under the GNU General Public License v3.0 or later (GPL-3.0-or-later). See the COPYING file for full license terms.
+This project is licensed under the GNU General Public License v3.0 or later (GPL-3.0-or-later). See the [COPYING](COPYING) file for full license terms.
