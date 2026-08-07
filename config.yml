@@ -1,0 +1,4 @@
+wallpaper_dir: ~/Pictures/wallpaper
+change_command : "hyprctl hyprpaper wallpaper ', ${WALLPAPER}, cover'"
+search_subdirs: true
+extra_animations: true
