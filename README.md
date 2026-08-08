@@ -20,6 +20,7 @@ Custom Execution: Works with any Wayland wallpaper daemon (swww, hyprpaper, mpvp
 ```
 
 git clone https://github.com/SirSobhan0/yawc.git
+mkdir -p ~/.config/quickshell/
 mv yawc ~/.config/quickshell/
 cd ~/.config/quickshell/
 cp config.yml.sample config.yml
