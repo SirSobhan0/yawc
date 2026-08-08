@@ -1,0 +1,15 @@
+# Directory containing your wallpaper images (~ tilde expansion is supported)
+wallpaper_dir: ~/Pictures/wallpaper
+
+# Command executed to set the selected wallpaper
+# Supports the optional ${WALLPAPER} placeholder for explicit path positioning
+# Some examples:
+# change_command: "dms ipc wallpaper set"
+# change_command : "hyprctl hyprpaper wallpaper ', ${WALLPAPER}, cover'"
+change_command: "dms ipc wallpaper set"
+
+# Recursively search subdirectories inside wallpaper_dir for image files
+search_subdirs: true
+
+# Enable the initial carousel entry animation on launch
+extra_animations: true
