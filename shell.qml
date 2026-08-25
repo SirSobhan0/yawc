@@ -22,6 +22,9 @@ PanelWindow {
     property string changeCommand: ""
     property bool searchSubdirs: false
     property bool extraAnimations: true
+    property real parallaxStrength: 1.0
+    property int frameWidth: 70
+    property int focusWidth: 540
     property bool viewInitialized: false
     property int currentIndex: 0
 
@@ -44,6 +47,9 @@ PanelWindow {
         if (cfg.change_command !== undefined) changeCommand = cfg.change_command
         if (cfg.search_subdirs !== undefined) searchSubdirs = cfg.search_subdirs
         if (cfg.extra_animations !== undefined) extraAnimations = cfg.extra_animations
+        if (cfg.parallax_strength !== undefined) parallaxStrength = cfg.parallax_strength
+        if (cfg.frame_width !== undefined) frameWidth = cfg.frame_width
+        if (cfg.focus_width !== undefined) focusWidth = cfg.focus_width
     }
 
     Process {
@@ -222,10 +228,15 @@ PanelWindow {
             spacing: 0
             reuseItems: true
 
-            cacheBuffer: 800
+            cacheBuffer: 1600
 
-            preferredHighlightBegin: width / 2 - 270
-            preferredHighlightEnd: width / 2 - 270
+            readonly property int fullResWindow:
+                Math.min(28, Math.ceil(width / root.frameWidth / 2) + 2)
+
+            readonly property real shearPad: height * 0.25 + 90
+
+            preferredHighlightBegin: width / 2 - root.focusWidth / 2
+            preferredHighlightEnd: width / 2 - root.focusWidth / 2
             highlightRangeMode: ListView.StrictlyEnforceRange
             highlightMoveDuration: 220
 
@@ -245,7 +256,20 @@ PanelWindow {
                     return (data && data.path) ? data.path : ""
                 }
 
-                width: isCurrent ? 540 : 100
+                readonly property bool loadFullRes:
+                    itemPath !== "" && Math.abs(index - carousel.currentIndex) <= carousel.fullResWindow
+
+                property real imageAspect: 1.6
+
+                readonly property real parallaxT: {
+                    let vw = carousel.width
+                    if (vw <= 0) return 0.5
+                    let center = delegateItem.x - carousel.contentX + delegateItem.width / 2
+                    let t = center / vw
+                    return Math.max(0, Math.min(1, 0.5 + (t - 0.5) * root.parallaxStrength))
+                }
+
+                width: isCurrent ? root.focusWidth : root.frameWidth
                 height: carousel.height
 
                 Behavior on width {
@@ -281,29 +305,63 @@ PanelWindow {
                             NumberAnimation { duration: 200 }
                         }
 
-                        Image {
-                            id: itemImage
+                        Item {
+                            id: imageLayer
                             anchors.centerIn: parent
-                            width: parent.width + 250
+                            width: parent.width + carousel.shearPad
                             height: parent.height
 
                             transform: Matrix4x4 {
                                 matrix: Qt.matrix4x4(
-                                    1, 0.25, 0, -0.25 * (itemImage.height / 2),
+                                    1, 0.25, 0, -0.25 * (imageLayer.height / 2),
                                     0, 1,    0, 0,
                                     0, 0,    1, 0,
                                     0, 0,    0, 1
                                 )
                             }
 
-                            source: delegateItem.itemPath !== "" ? "file://" + delegateItem.itemPath : ""
-                            sourceSize: Qt.size(790, 650)
-                            fillMode: Image.PreserveAspectCrop
-                            asynchronous: true
-                            cache: true
-                            smooth: true
-                            mipmap: true
-                            antialiasing: true
+                            readonly property real coverWidth:
+                                Math.max(width, height * delegateItem.imageAspect)
+                            readonly property real panX:
+                                -(coverWidth - width) * delegateItem.parallaxT
+
+                            Image {
+                                id: thumb
+                                x: imageLayer.panX
+                                width: imageLayer.coverWidth
+                                height: imageLayer.height
+                                source: delegateItem.itemPath !== "" ? "file://" + delegateItem.itemPath : ""
+                                sourceSize.height: 256
+                                fillMode: Image.Stretch
+                                asynchronous: true
+                                cache: true
+                                smooth: true
+
+                                onSourceChanged: delegateItem.imageAspect = 1.6
+                                onStatusChanged: {
+                                    if (status === Image.Ready && implicitHeight > 0)
+                                        delegateItem.imageAspect = implicitWidth / implicitHeight
+                                }
+                            }
+
+                            Image {
+                                id: itemImage
+                                x: imageLayer.panX
+                                width: imageLayer.coverWidth
+                                height: imageLayer.height
+                                source: delegateItem.loadFullRes ? "file://" + delegateItem.itemPath : ""
+                                sourceSize.height: carousel.height
+                                fillMode: Image.Stretch
+                                asynchronous: true
+                                cache: true
+                                smooth: true
+                                antialiasing: true
+
+                                opacity: status === Image.Ready ? 1 : 0
+                                Behavior on opacity {
+                                    NumberAnimation { duration: 180 }
+                                }
+                            }
                         }
 
                         Rectangle {

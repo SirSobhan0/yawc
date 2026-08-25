@@ -13,3 +13,16 @@ search_subdirs: true
 
 # Enable the initial carousel entry animation on launch
 extra_animations: true
+
+# How strongly a card's on-screen position drives which part of its photo shows.
+# 1.0 = a card at the far-left edge shows the photo's left edge, the centred
+# card shows the middle. Values below 1.0 dampen the effect (0 = always
+# centre-cropped); above 1.0 saturates it (edges reached sooner).
+parallax_strength: 1.0
+
+# Width in pixels of the unselected cards. Smaller values fit more frames on
+# screen, which makes the parallax effect much more pronounced.
+frame_width: 70
+
+# Width in pixels of the selected (expanded) card
+focus_width: 540
