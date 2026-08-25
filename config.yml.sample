@@ -26,3 +26,20 @@ frame_width: 70
 
 # Width in pixels of the selected (expanded) card
 focus_width: 540
+
+# Opacity of the dark backdrop behind the carousel (0.0 - 1.0). Lower values
+# show more of the desktop through.
+backdrop_opacity: 0.87
+
+# --- Thumbnail cache -----------------------------------------------------
+# Cache small JPEG previews under ~/.cache/yawc/thumbs so subsequent launches
+# render instantly instead of decoding every full-size image. Requires the
+# python3 Pillow module; silently skipped if unavailable.
+thumbnail_cache: true
+
+# Height in pixels of cached thumbnails. Larger looks better while the
+# full-resolution image loads, at the cost of disk space and first-run time.
+thumbnail_height: 256
+
+# Cache is trimmed (oldest first) once it exceeds this many megabytes.
+cache_size_limit_mb: 64

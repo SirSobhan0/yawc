@@ -12,9 +12,19 @@ yawc is a stylish, lightweight wallpaper selector interface for Wayland built wi
 
 Carousel UI: Smooth, angled horizontal card view with animated focus transitions.
 
-Flexible Configuration: Reads YAML configuration files (config.yaml / config.yml) and supports custom file overrides using the YAWC_CONFIG environment variable.
+Parallax Cropping: Each card reveals the part of its photo matching its position on screen — cards on the left show the left of the image, the centred card shows the middle. Tunable via `parallax_strength`.
+
+Fast Loading: Small JPEG previews are cached on disk, so launches after the first render near-instantly instead of decoding every full-size image. Full-resolution versions fade in afterwards.
+
+Flexible Configuration: Reads YAML configuration files (config.yaml / config.yml) and supports custom file overrides using the YAWC_CONFIG environment variable. Card sizing, backdrop opacity, animations, and cache behaviour are all configurable.
 
 Custom Execution: Works with any Wayland wallpaper daemon (swww, hyprpaper, mpvpaper, etc.) via customizable commands.
+
+## Requirements
+
+- [Quickshell](https://quickshell.outfoxxed.me/)
+- `python3` with PyYAML — configuration parsing
+- `python3` Pillow (`python3-pil`) — *optional*, only for the thumbnail cache. Without it yawc still runs and simply loads full-size images directly; set `thumbnail_cache: false` to disable the feature outright.
 
 ## Installation
 ```
@@ -51,6 +61,12 @@ Mouse Wheel: Scroll through wallpapers
 Enter / Space / Click: Apply selected wallpaper
 
 Escape: Exit
+
+## Thumbnail Cache
+
+Previews are stored as small JPEGs in `~/.cache/yawc/thumbs`. The cache is keyed on each file's path, modification time, and size, so edited or replaced wallpapers regenerate automatically. It is trimmed oldest-first once it grows past `cache_size_limit_mb`.
+
+Roughly 30KB per wallpaper at the default `thumbnail_height: 256` — a 34-image collection uses about 1MB. Deleting the directory is safe; it simply rebuilds on the next launch.
 
 ## Development & Maintenance Status
 
