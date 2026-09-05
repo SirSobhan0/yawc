@@ -26,6 +26,9 @@ PanelWindow {
     property int frameWidth: 70
     property int focusWidth: 540
     property real backdropOpacity: 0.87
+    property string theme: "slant"
+    property real perspectiveDepth: 0.45
+    readonly property bool perspectiveTheme: theme === "perspective"
     property bool thumbnailCache: true
     property int thumbnailHeight: 256
     property int cacheSizeLimitMb: 64
@@ -56,6 +59,8 @@ PanelWindow {
         if (cfg.frame_width !== undefined) frameWidth = cfg.frame_width
         if (cfg.focus_width !== undefined) focusWidth = cfg.focus_width
         if (cfg.backdrop_opacity !== undefined) backdropOpacity = cfg.backdrop_opacity
+        if (cfg.theme !== undefined) theme = String(cfg.theme).toLowerCase()
+        if (cfg.perspective_depth !== undefined) perspectiveDepth = cfg.perspective_depth
         if (cfg.thumbnail_cache !== undefined) thumbnailCache = cfg.thumbnail_cache
         if (cfg.thumbnail_height !== undefined) thumbnailHeight = cfg.thumbnail_height
         if (cfg.cache_size_limit_mb !== undefined) cacheSizeLimitMb = cfg.cache_size_limit_mb
@@ -441,16 +446,32 @@ PanelWindow {
 
                 property real imageAspect: 1.6
 
-                readonly property real parallaxT: {
+                readonly property real viewX: delegateItem.x - carousel.contentX
+
+                // 0 at the viewport's left edge, 1 at the right.
+                readonly property real screenT: {
                     let vw = carousel.width
                     if (vw <= 0) return 0.5
-                    let center = delegateItem.x - carousel.contentX + delegateItem.width / 2
-                    let t = center / vw
-                    return Math.max(0, Math.min(1, 0.5 + (t - 0.5) * root.parallaxStrength))
+                    return Math.max(0, Math.min(1, (viewX + delegateItem.width / 2) / vw))
                 }
+
+                readonly property real parallaxT:
+                    Math.max(0, Math.min(1, 0.5 + (screenT - 0.5) * root.parallaxStrength))
+
+                // 0 at the viewport centre, 1 at either edge.
+                readonly property real depthT: Math.abs(screenT - 0.5) * 2
+
+                // 1/(1+z) falloff, so distance reads nonlinearly like real depth.
+                readonly property real depthScale:
+                    root.perspectiveTheme ? 1 / (1 + depthT * root.perspectiveDepth) : 1
 
                 width: isCurrent ? root.focusWidth : root.frameWidth
                 height: carousel.height
+
+                // Cards nearer the selection stack above their neighbours.
+                z: root.perspectiveTheme
+                    ? 1000 - Math.min(999, Math.abs(index - carousel.currentIndex))
+                    : 0
 
                 Behavior on width {
                     NumberAnimation {
@@ -463,14 +484,22 @@ PanelWindow {
                     id: slantContainer
                     anchors.fill: parent
 
-                    transform: Matrix4x4 {
-                        matrix: Qt.matrix4x4(
-                            1, -0.25, 0, 0.25 * (slantContainer.height / 2),
-                            0, 1,     0, 0,
-                            0, 0,     1, 0,
-                            0, 0,     0, 1
-                        )
-                    }
+                    // Depth first, so the shear sees the shortened card and keeps its
+                    // slant angle. Neither step touches x, so cards stay flush.
+                    transform: [
+                        Scale {
+                            origin.y: slantContainer.height / 2
+                            yScale: delegateItem.depthScale
+                        },
+                        Matrix4x4 {
+                            matrix: Qt.matrix4x4(
+                                1, -0.25, 0, 0.25 * (slantContainer.height / 2),
+                                0, 1,     0, 0,
+                                0, 0,     1, 0,
+                                0, 0,     0, 1
+                              )
+                        }
+                    ]
 
                     Rectangle {
                         anchors.fill: parent
@@ -497,11 +526,14 @@ PanelWindow {
                                     0, 1,    0, 0,
                                     0, 0,    1, 0,
                                     0, 0,    0, 1
-                                )
+                                  )
                             }
 
+                            // Tracks the card's on-screen height so photos keep their
+                            // aspect instead of looking vertically squashed.
                             readonly property real coverWidth:
-                                Math.max(width, height * delegateItem.imageAspect)
+                                Math.max(width, height * delegateItem.imageAspect
+                                                * delegateItem.depthScale)
                             readonly property real panX:
                                 -(coverWidth - width) * delegateItem.parallaxT
 
@@ -556,7 +588,13 @@ PanelWindow {
                         Rectangle {
                             anchors.fill: parent
                             color: "#0a0a0f"
-                            opacity: delegateItem.isCurrent ? 0.0 : 0.45
+                            // Perspective theme deepens the dim with distance instead of
+                            // dimming every unselected card equally.
+                            opacity: delegateItem.isCurrent
+                                ? 0.0
+                                : (root.perspectiveTheme
+                                    ? 0.2 + 0.45 * delegateItem.depthT
+                                    : 0.45)
                             Behavior on opacity {
                                 NumberAnimation {
                                     duration: 320

@@ -31,6 +31,18 @@ focus_width: 540
 # show more of the desktop through.
 backdrop_opacity: 0.87
 
+# --- Theme ---------------------------------------------------------------
+# Card presentation style:
+#   slant       - the default. Cards are sheared into parallelograms.
+#   perspective - the same slanted cards, plus depth: the row tapers away
+#                 toward both screen edges.
+theme: slant
+
+# How steeply the row tapers toward the screen edges under the perspective
+# theme. 0 = flat (same as slant), 0.45 = moderate, 1.0+ = steep, with the
+# outermost cards much shorter. Ignored when theme is slant.
+perspective_depth: 0.45
+
 # --- Thumbnail cache -----------------------------------------------------
 # Cache small JPEG previews under ~/.cache/yawc/thumbs so subsequent launches
 # render instantly instead of decoding every full-size image. Requires the

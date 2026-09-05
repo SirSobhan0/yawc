@@ -12,6 +12,8 @@ yawc is a stylish, lightweight wallpaper selector interface for Wayland built wi
 
 Carousel UI: Smooth, angled horizontal card view with animated focus transitions.
 
+Two Themes: `slant` (the default sheared-card look) or `perspective`, which keeps the same slanted edges and adds depth on top — the row tapers away toward both screen edges. Set via `theme` in the config.
+
 Parallax Cropping: Each card reveals the part of its photo matching its position on screen — cards on the left show the left of the image, the centred card shows the middle. Tunable via `parallax_strength`.
 
 Fast Loading: Small JPEG previews are cached on disk, so launches after the first render near-instantly instead of decoding every full-size image. Full-resolution versions fade in afterwards.
@@ -61,6 +63,16 @@ Mouse Wheel: Scroll through wallpapers
 Enter / Space / Click: Apply selected wallpaper
 
 Escape: Exit
+
+## Themes
+
+`theme: slant` (default) shears each card into a parallelogram, counter-shearing the photo inside so the image itself stays upright.
+
+`theme: perspective` keeps the slanted parallelogram cards exactly as they are and layers depth on top. Card height follows a `1/(1+z)` falloff from the centre outward, so the row is tallest at the selection and tapers toward both screen edges while still spanning the full width. Each card samples that falloff at its own left and right edges, so neighbours meet flush with no gaps, and a projective divide gives each card genuine foreshortening rather than a flat squash. Cards also dim progressively as they recede.
+
+`perspective_depth` (default `0.45`) controls how steeply the row tapers. `0` reduces it to plain `slant`, higher values pull the edges further into the distance.
+
+Both themes support parallax cropping and the thumbnail cache.
 
 ## Thumbnail Cache
 
